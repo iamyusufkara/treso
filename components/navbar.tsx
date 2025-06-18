@@ -17,7 +17,7 @@ export const Navbar = () => {
         <NextLink className="flex justify-start items-center gap-1" href="/">
           <p className="font-bold text-inherit">TRESO</p>
         </NextLink>
-        <Badge color="danger" content="alpha" showOutline={false} />
+        <Badge color="danger">alpha</Badge>
       </NavbarContent>
 
       <NavbarContent
