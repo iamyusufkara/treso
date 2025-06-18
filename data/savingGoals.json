@@ -1,0 +1,47 @@
+[
+  {
+    "title": "Urlaub 2025",
+    "slug": "urlaub-2025",
+    "saved": 500,
+    "target": 1000,
+    "transactions": [
+      { "date": "2025-05-01", "amount": 200 },
+      { "date": "2025-06-01", "amount": 300 }
+    ]
+  },
+  {
+    "title": "Neues Fahrrad",
+    "slug": "neues-fahrrad",
+    "saved": 300,
+    "target": 600,
+    "transactions": [
+      { "date": "2025-04-15", "amount": 100 },
+      { "date": "2025-05-10", "amount": 200 }
+    ]
+  },
+  {
+    "title": "Notgroschen",
+    "slug": "notgroschen",
+    "saved": 1200,
+    "target": 5000,
+    "transactions": [
+      { "date": "2025-01-01", "amount": 1200 }
+    ]
+  },
+  {
+    "title": "Wohnungseinrichtung",
+    "slug": "wohnungseinrichtung",
+    "saved": 750,
+    "target": 1500,
+    "transactions": []
+  },
+  {
+    "title": "Geschenk für Familie",
+    "slug": "geschenk-fuer-familie",
+    "saved": 100,
+    "target": 250,
+    "transactions": [
+      { "date": "2025-06-01", "amount": 100 }
+    ]
+  }
+]
