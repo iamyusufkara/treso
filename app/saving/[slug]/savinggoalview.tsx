@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Modal, ModalBody, ModalContent, ModalHeader, ModalFooter,
-} from "@heroui/modal";
-import { PiggyBank } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "@heroui/modal";
+import { Select, SelectItem } from "@heroui/select";
+import { PiggyBank } from "lucide-react";
 
 interface Transaction {
   date: string;
@@ -22,116 +28,152 @@ interface Goal {
 }
 
 export default function SavingsGoalView({ goal }: { goal: Goal }) {
-  const storageKey = `treso_goal_${goal.slug}`;
-
   const [transactions, setTransactions] = useState<Transaction[]>(goal.transactions);
-  const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState("");
-  const [actionType, setActionType] = useState<"deposit" | "withdraw">("deposit");
+  const [label, setLabel] = useState("");
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmTitle, setConfirmTitle] = useState("");
+  const [action, setAction] = useState("deposit");
+  const router = useRouter();
 
-  // ✅ Lade aus localStorage beim ersten Rendern
+  const key = `treso_goal_${goal.slug}`;
+
   useEffect(() => {
-    const stored = localStorage.getItem(storageKey);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setTransactions(parsed);
-      } catch (err) {
-        console.warn("Invalid local data for", storageKey);
-      }
-    }
-  }, [storageKey]);
+    localStorage.setItem(
+      key,
+      JSON.stringify({ ...goal, transactions })
+    );
+  }, [transactions]);
 
-  // ✅ Speichern bei jeder Änderung
-  useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(transactions));
-  }, [transactions, storageKey]);
-
-  const totalSaved = transactions.reduce((sum, t) => sum + t.amount, 0);
-  const progress = Math.round((totalSaved / goal.target) * 100);
-
-  const handleAction = () => {
+  const handleTransaction = () => {
     const parsed = parseFloat(amount);
-    if (isNaN(parsed) || parsed <= 0) return;
+    if (!label.trim() || isNaN(parsed)) return;
 
-    const newTransaction: Transaction = {
-      date: new Date().toISOString().split("T")[0],
-      label: actionType === "deposit" ? "Einzahlung" : "Auszahlung",
-      amount: actionType === "deposit" ? parsed : -parsed,
-    };
+    const signedAmount = action === "withdraw" ? -Math.abs(parsed) : parsed;
 
-    setTransactions((prev) => [newTransaction, ...prev]);
+    setTransactions([
+      ...transactions,
+      {
+        label: label.trim(),
+        amount: signedAmount,
+        date: new Date().toISOString().split("T")[0],
+      },
+    ]);
     setAmount("");
-    setIsOpen(false);
+    setLabel("");
+    setAction("deposit");
+    setIsModalOpen(false);
   };
 
+  const handleDelete = () => {
+    if (confirmTitle !== goal.title) return;
+    localStorage.removeItem(key);
+    router.push("/");
+  };
+
+  const saved = transactions.reduce((sum, t) => sum + t.amount, 0);
+  const progress = Math.round((saved / goal.target) * 100);
+
   return (
-    <main className="p-6 max-w-3xl mx-auto space-y-8">
+    <div className="space-y-8 max-w-2xl mx-auto p-6">
       <h1 className="text-3xl font-bold">{goal.title}</h1>
 
-      <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-xl">
-        <div className="flex justify-between mb-1">
-          <span className="font-semibold">Fortschritt</span>
-          <span className="text-sm text-gray-600">von {goal.target.toLocaleString("de-DE")} €</span>
+      <div className="bg-gray-100 dark:bg-gray-900 p-4 rounded-xl">
+        <p className="font-semibold text-lg">Fortschritt</p>
+        <div className="text-2xl font-bold">{saved} €</div>
+        <div className="text-gray-500">von {goal.target} €</div>
+        <div className="bg-gray-300 dark:bg-gray-700 rounded-full h-3 mt-2 overflow-hidden">
+          <div
+            className="bg-green-600 h-full"
+            style={{ width: `${progress}%` }}
+          />
         </div>
-        <div className="text-xl font-bold text-green-700 mb-2">
-          {totalSaved.toLocaleString("de-DE")} €
-        </div>
-        <div className="w-full bg-gray-300 dark:bg-gray-600 h-3 rounded-full overflow-hidden">
-          <div className="bg-green-600 h-full" style={{ width: `${progress}%` }} />
-        </div>
-        <p className="text-right text-xs text-gray-500 mt-1">{progress}%</p>
+        <div className="text-sm text-right text-gray-500 mt-1">{progress}%</div>
       </div>
 
-      {/* Buttons */}
-      <div className="flex gap-4">
-        <Button onClick={() => { setActionType("deposit"); setIsOpen(true); }} color="success">Einzahlen</Button>
-        <Button onClick={() => { setActionType("withdraw"); setIsOpen(true); }} color="danger">Auszahlen</Button>
-      </div>
+      <Button color="primary" onClick={() => setIsModalOpen(true)}>
+        Neue Buchung
+      </Button>
 
-      {/* Historie */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Historie</h2>
-        <ul className="space-y-4">
-          {transactions.map((t, i) => (
-            <li key={i} className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-xl p-4 shadow-sm">
-              <div className="bg-green-600 text-white rounded-full p-3 mr-4">
-                <PiggyBank size={24} />
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-semibold">Historie</h2>
+          <span className="text-green-700 cursor-pointer text-sm font-medium">Alle ansehen</span>
+        </div>
+        <ul className="space-y-2">
+          {transactions.map((t, idx) => (
+            <li key={idx} className="flex items-center gap-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-xl">
+              <div className="bg-green-600 p-2 rounded-full">
+                <PiggyBank className="text-white w-6 h-6" />
               </div>
-              <div>
-                <div className="font-medium text-gray-900 dark:text-white">{t.label}</div>
-                <div className={`text-sm ${t.amount >= 0 ? "text-green-600" : "text-red-500"}`}>
-                  {t.amount >= 0 ? "+" : "-"}{Math.abs(t.amount).toLocaleString("de-DE")} €
-                </div>
+              <div className="flex-1">
+                <p className="font-semibold leading-tight">{t.label}</p>
+                <p className="text-sm text-gray-500">{t.amount} €</p>
               </div>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Modal */}
-      <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
+      <div className="text-right">
+        <Button variant="light" color="danger" onClick={() => setIsDeleteOpen(true)}>
+          Sparziel löschen
+        </Button>
+      </div>
+
+      <Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen}>
         <ModalContent>
-          <ModalHeader>{actionType === "deposit" ? "Einzahlen" : "Auszahlen"}</ModalHeader>
-          <ModalBody>
+          <ModalHeader>Neue Buchung</ModalHeader>
+          <ModalBody className="space-y-4">
+            <Select label="Art der Buchung" selectedKeys={[action]} onSelectionChange={(keys) => setAction(Array.from(keys)[0] as string)}>
+              <SelectItem key="deposit">Einzahlung</SelectItem>
+              <SelectItem key="withdraw">Auszahlung</SelectItem>
+            </Select>
             <Input
-              type="number"
+              placeholder="Beschreibung (z. B. Bonus)"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+            />
+            <Input
+              placeholder="Betrag (€)"
               value={amount}
+              type="number"
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="Betrag in €"
-              min={1}
             />
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onClick={() => setIsOpen(false)}>
+            <Button variant="light" onClick={() => setIsModalOpen(false)}>
               Abbrechen
             </Button>
-            <Button color={actionType === "deposit" ? "success" : "danger"} onClick={handleAction}>
-              Bestätigen
+            <Button color="primary" onClick={handleTransaction}>
+              Buchen
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </main>
+
+      <Modal isOpen={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <ModalContent>
+          <ModalHeader>Sparziel löschen</ModalHeader>
+          <ModalBody>
+            <p>Bitte gib den Namen des Sparziels ein, um es zu löschen:</p>
+            <Input
+              placeholder={goal.title}
+              value={confirmTitle}
+              onChange={(e) => setConfirmTitle(e.target.value)}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onClick={() => setIsDeleteOpen(false)}>
+              Abbrechen
+            </Button>
+            <Button color="danger" onClick={handleDelete}>
+              Endgültig löschen
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </div>
   );
 }

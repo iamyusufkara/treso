@@ -6,18 +6,19 @@ import {
 } from "@heroui/navbar";
 
 import NextLink from "next/link";
+import { Badge } from "@heroui/badge";
 
 import { ThemeSwitch } from "@/components/theme-switch";
-import { Badge } from "@heroui/badge";
 
 export const Navbar = () => {
   return (
     <HeroUINavbar maxWidth="xl" position="sticky">
       <NavbarContent justify="start">
-        <NextLink className="flex justify-start items-center gap-1" href="/">
-          <p className="font-bold text-inherit">TRESO</p>
-        </NextLink>
-        <Badge color="danger">alpha</Badge>
+        <Badge color="danger" content="alpha" size="sm">
+          <NextLink className="flex justify-start items-center gap-1" href="/">
+            <p className="font-bold text-inherit">TRESO</p>
+          </NextLink>
+        </Badge>
       </NavbarContent>
 
       <NavbarContent
