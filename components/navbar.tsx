@@ -4,7 +4,6 @@ import {
   NavbarMenuToggle,
   NavbarItem,
 } from "@heroui/navbar";
-
 import NextLink from "next/link";
 import { Badge } from "@heroui/badge";
 
@@ -12,7 +11,7 @@ import { ThemeSwitch } from "@/components/theme-switch";
 
 export const Navbar = () => {
   return (
-    <HeroUINavbar maxWidth="xl" position="sticky">
+    <HeroUINavbar maxWidth="lg" position="sticky">
       <NavbarContent justify="start">
         <Badge color="danger" content="alpha" size="sm">
           <NextLink className="flex justify-start items-center gap-1" href="/">

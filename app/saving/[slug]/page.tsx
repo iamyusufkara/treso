@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import SavingsGoalView from "./savinggoalview";
+import { Spinner } from "@heroui/spinner";
 
 export default function Page() {
   const params = useParams();
@@ -14,51 +16,40 @@ export default function Page() {
       : "";
 
   const [goal, setGoal] = useState<any | null>(null);
-  const [debug, setDebug] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setDebug("🔍 useEffect läuft");
-
-    if (!slug) {
-      setDebug("❌ Kein Slug vorhanden");
-      return;
-    }
+    if (!slug) return;
 
     const key = `treso_goal_${slug}`;
-    setDebug((d) => d + `\n📦 Suche in localStorage unter: ${key}`);
-
     const raw = localStorage.getItem(key);
 
     if (!raw) {
-      setDebug((d) => d + `\n❌ Kein Eintrag im localStorage gefunden.`);
+      setGoal(null);
+      setLoading(false);
       return;
     }
 
     try {
       const parsed = JSON.parse(raw);
       setGoal(parsed);
-      setDebug((d) => d + `\n✅ Sparziel geladen: ${parsed.title}`);
     } catch (err) {
-      setDebug((d) => d + `\n❌ Fehler beim Parsen: ${err}`);
+      setGoal(null);
+    } finally {
+      setLoading(false);
     }
   }, [slug]);
 
   return (
-  <div className="p-6 max-w-2xl mx-auto space-y-6">
-    <h1 className="text-2xl font-bold">Sparziel Detailansicht</h1>
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
 
-    <pre className="bg-black text-green-400 p-4 rounded text-sm whitespace-pre-wrap">
-      {debug}
-    </pre>
-
-    {goal ? (
-      <SavingsGoalView goal={goal} />
-    ) : (
-      <div className="text-yellow-400 font-medium">
-        ⚠️ Sparziel nicht gefunden:{" "}
-        <span className="text-white">{slug || "unbekannt"}</span>
-      </div>
-    )}
-  </div>
-);
+      {goal ? (
+        <SavingsGoalView goal={goal} />
+      ) : (
+        <div className="text-yellow-400 font-medium">
+          ⚠️ Sparziel nicht gefunden: <span className="text-white">{slug || "unbekannt"}</span>
+        </div>
+      )}
+    </div>
+  );
 }

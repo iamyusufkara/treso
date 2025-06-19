@@ -13,6 +13,8 @@ import {
 } from "@heroui/modal";
 import { Select, SelectItem } from "@heroui/select";
 import { PiggyBank } from "lucide-react";
+import Link from "next/link";
+import { ProgressCard } from "@/components/ProgressCard";
 
 interface Transaction {
   date: string;
@@ -28,7 +30,9 @@ interface Goal {
 }
 
 export default function SavingsGoalView({ goal }: { goal: Goal }) {
-  const [transactions, setTransactions] = useState<Transaction[]>(goal.transactions);
+  const [transactions, setTransactions] = useState<Transaction[]>(
+    goal.transactions,
+  );
   const [amount, setAmount] = useState("");
   const [label, setLabel] = useState("");
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -40,14 +44,12 @@ export default function SavingsGoalView({ goal }: { goal: Goal }) {
   const key = `treso_goal_${goal.slug}`;
 
   useEffect(() => {
-    localStorage.setItem(
-      key,
-      JSON.stringify({ ...goal, transactions })
-    );
+    localStorage.setItem(key, JSON.stringify({ ...goal, transactions }));
   }, [transactions]);
 
   const handleTransaction = () => {
     const parsed = parseFloat(amount);
+
     if (!label.trim() || isNaN(parsed)) return;
 
     const signedAmount = action === "withdraw" ? -Math.abs(parsed) : parsed;
@@ -76,21 +78,16 @@ export default function SavingsGoalView({ goal }: { goal: Goal }) {
   const progress = Math.round((saved / goal.target) * 100);
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto p-6">
+    <div className="space-y-8 mx-auto p-6">
+      <Link
+        href="/"
+        className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+      >
+        <Button color="success">← Zurück zum Dashboard</Button>
+      </Link>
       <h1 className="text-3xl font-bold">{goal.title}</h1>
 
-      <div className="bg-gray-100 dark:bg-gray-900 p-4 rounded-xl">
-        <p className="font-semibold text-lg">Fortschritt</p>
-        <div className="text-2xl font-bold">{saved} €</div>
-        <div className="text-gray-500">von {goal.target} €</div>
-        <div className="bg-gray-300 dark:bg-gray-700 rounded-full h-3 mt-2 overflow-hidden">
-          <div
-            className="bg-green-600 h-full"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <div className="text-sm text-right text-gray-500 mt-1">{progress}%</div>
-      </div>
+      <ProgressCard saved={saved} target={goal.target} />
 
       <Button color="primary" onClick={() => setIsModalOpen(true)}>
         Neue Buchung
@@ -99,11 +96,16 @@ export default function SavingsGoalView({ goal }: { goal: Goal }) {
       <div>
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-semibold">Historie</h2>
-          <span className="text-green-700 cursor-pointer text-sm font-medium">Alle ansehen</span>
+          <span className="text-green-700 cursor-pointer text-sm font-medium">
+            Alle ansehen
+          </span>
         </div>
         <ul className="space-y-2">
           {transactions.map((t, idx) => (
-            <li key={idx} className="flex items-center gap-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-xl">
+            <li
+              key={idx}
+              className="flex items-center gap-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-xl"
+            >
               <div className="bg-green-600 p-2 rounded-full">
                 <PiggyBank className="text-white w-6 h-6" />
               </div>
@@ -117,7 +119,11 @@ export default function SavingsGoalView({ goal }: { goal: Goal }) {
       </div>
 
       <div className="text-right">
-        <Button variant="light" color="danger" onClick={() => setIsDeleteOpen(true)}>
+        <Button
+          color="danger"
+          variant="light"
+          onClick={() => setIsDeleteOpen(true)}
+        >
           Sparziel löschen
         </Button>
       </div>
@@ -126,7 +132,13 @@ export default function SavingsGoalView({ goal }: { goal: Goal }) {
         <ModalContent>
           <ModalHeader>Neue Buchung</ModalHeader>
           <ModalBody className="space-y-4">
-            <Select label="Art der Buchung" selectedKeys={[action]} onSelectionChange={(keys) => setAction(Array.from(keys)[0] as string)}>
+            <Select
+              label="Art der Buchung"
+              selectedKeys={[action]}
+              onSelectionChange={(keys) =>
+                setAction(Array.from(keys)[0] as string)
+              }
+            >
               <SelectItem key="deposit">Einzahlung</SelectItem>
               <SelectItem key="withdraw">Auszahlung</SelectItem>
             </Select>
@@ -137,8 +149,8 @@ export default function SavingsGoalView({ goal }: { goal: Goal }) {
             />
             <Input
               placeholder="Betrag (€)"
-              value={amount}
               type="number"
+              value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
           </ModalBody>
