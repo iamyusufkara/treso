@@ -157,7 +157,6 @@ export default function DashboardPage() {
           <ModalBody className="space-y-4">
             <p>Wie dürfen wir dich nennen?</p>
             <Input
-              autoFocus
               label="Dein Name"
               value={tempName}
               onChange={(e) => setTempName(e.target.value)}
