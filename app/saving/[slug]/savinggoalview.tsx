@@ -79,12 +79,22 @@ export default function SavingsGoalView({ goal }: { goal: Goal }) {
 
   return (
     <div className="space-y-8 mx-auto p-6">
-      <Link
-        href="/"
-        className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-      >
-        <Button color="success">← Zurück zum Dashboard</Button>
-      </Link>
+      <div className="flex justify-between items-center">
+        <Link
+          href="/"
+          className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+        >
+          <Button color="success">← Zurück zum Dashboard</Button>
+        </Link>
+        <Button
+          color="danger"
+          variant="light"
+          onClick={() => setIsDeleteOpen(true)}
+        >
+          Sparziel löschen
+        </Button>
+      </div>
+
       <h1 className="text-3xl font-bold">{goal.title}</h1>
 
       <ProgressCard saved={saved} target={goal.target} />
@@ -95,10 +105,7 @@ export default function SavingsGoalView({ goal }: { goal: Goal }) {
 
       <div>
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xl font-semibold">Historie</h2>
-          <span className="text-green-700 cursor-pointer text-sm font-medium">
-            Alle ansehen
-          </span>
+          <h2 className="text-xl font-semibold">Buchungsverlauf</h2>
         </div>
         <ul className="space-y-2">
           {transactions.map((t, idx) => (
@@ -116,16 +123,6 @@ export default function SavingsGoalView({ goal }: { goal: Goal }) {
             </li>
           ))}
         </ul>
-      </div>
-
-      <div className="text-right">
-        <Button
-          color="danger"
-          variant="light"
-          onClick={() => setIsDeleteOpen(true)}
-        >
-          Sparziel löschen
-        </Button>
       </div>
 
       <Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen}>
